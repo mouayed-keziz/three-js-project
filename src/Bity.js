@@ -1,12 +1,13 @@
 import React, { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import gltfmodel from "./FINAL MESH BITY.gltf"
-import { useFrame } from "react-three-fiber";
 
 export default function BityModel(props) {
     const { nodes, materials } = useGLTF(gltfmodel);
     const mesh = useRef()
-    useFrame(() => (mesh.current.rotation.y += 0.01))
+    //useFrame(() => {
+    //    mesh.current.rotation.y += 0.01;
+    //})
     return (
         <group ref={mesh} {...props} dispose={null}>
             <mesh

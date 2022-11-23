@@ -3,40 +3,41 @@ import { Canvas, useThree } from '@react-three/fiber/'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // import Controls from './Controls';
 
-
 import BityModel from './Bity';
-import { Environment } from '@react-three/drei';
-import { GridHelper } from "three";
+import { Environment, PerspectiveCamera } from '@react-three/drei';
 
+import studio from '@theatre/studio'
+import extension from '@theatre/r3f/dist/extension'
+import { SheetProvider } from '@theatre/r3f'
+import { getProject } from '@theatre/core';
+
+studio.initialize()
+studio.extend(extension)
 
 export default function App() {
-
+  const demoSheet = getProject('Demo Project').sheet('Demo Sheet');
   return (
     <>
-      <button>hello world</button>
-      <Canvas camera={{ fov: 75, near: 0.1, far: 1000, position: [0, 0, 5] }} style={{ position: "fixed", top: "0", left: "0", zIndex: "-1" }}>
-        <ambientLight intensity={0.4} />
-        <CameraController />
-        <Suspense fallback={null}>
-          <BityModel position={[0, -2, 0]} />
-          <Environment preset="sunset" background="blue" />
-        </Suspense>
+      <Canvas style={{ position: "fixed", top: "0", left: "0", zIndex: "-1" }}>
+        <SheetProvider sheet={demoSheet}>
+          <PerspectiveCamera makeDefault position={[5, 5, -5]} fov={75} />
+          <ambientLight />
+          <pointLight position={[10, 10, 10]} />
+          <CameraController />
+          <Suspense fallback={null}>
+            <BityModel position={[0, -2, 0]} />
+            <Environment preset="studio" background />
+          </Suspense>
+        </SheetProvider>
       </Canvas >
     </>
   )
 }
 
-// function MyBox() {
-//   //const mesh = useRef();
+/*
+"sunset" | "dawn" | "night" | "warehouse" | "forest" | "apartment" | "studio" | "city" | "park" | "lobby"
+*/
 
-
-//   return (
-//     <mesh>
-//       <boxGeometry />
-//       <meshStandardMaterial />
-//     </mesh>
-//   );
-// }
 
 
 const CameraController = () => {
