@@ -1,121 +1,61 @@
-import React, { useEffect, useRef } from 'react'
-import { Canvas, useThree } from '@react-three/fiber/'
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { PerspectiveCamera, Stats } from '@react-three/drei';
-import { TextureLoader } from 'three';
-import { useLoader, useFrame } from 'react-three-fiber';
-import brickTexture from "./TEXTURES/brick_texture.jpg"
-import galaxyTexture from "./TEXTURES/galaxy2_texture.jpg"
-import { getProject } from '@theatre/core'
-import studio from '@theatre/studio'
+import { OrbitControls, Sky, Stats } from "@react-three/drei";
+import { useEffect, useRef, useState } from "react";
+import { Canvas } from "react-three-fiber";
+import { MathUtils } from "three";
 
-studio.initialize()
-
-export default function App() {
-  const [galaxyMap, BrickMap] = useLoader(TextureLoader, [galaxyTexture, brickTexture]);
-  const demoSheet = getProject('Demo Project').sheet('Demo Sheet')
-
+function StadiumScene({ position }) {
+  const [color, setColor] = useState("blue");
   return (
-    <>
-      <center><button onClick={() => {
-        console.log("hello world")
-      }}>hellp world</button></center>
-      <Canvas style={{ position: "fixed", top: "0", left: "0", zIndex: "-1", background: "black" }}>
-
-        <ambientLight intensity={0.4} />
-        <CameraController position={[0, 0, 5]} />
-
-        {/* the next mesh is a box with blackcolor, args is the size, and the mesh visible */}
-        <mesh visible={false}>
-          <boxGeometry args={[2, 2, 2]} />
-          <meshStandardMaterial meshStandardMaterial />
-        </mesh>
-
-        {/* the next mesh is a sphere with hotpink color, args is how smooth the sphere is 
-        there is the scale, the rotation x, y, z */}
-        <mesh
-          visible={false}
-          scale={1.1}
-          position={[0, 0, 0]}
-          rotation-x={50}
-        >
-          <sphereGeometry args={[1, 25, 25]} />
-          <meshStandardMaterial color="hotpink" />
-        </mesh>
-
-        {/* the next mesh has all types of events, this is the description of the event object 
-        ({
-          ...DomEvent                   // All the original event data
-          ...Intersection               // All of Three's intersection data - see note 2
-          intersections: Intersection[] // The first intersection of each intersected object
-          object: Object3D              // The object that was actually hit
-          eventObject: Object3D         // The object that registered the event
-          unprojectedPoint: Vector3     // Camera-unprojected point
-          ray: Ray                      // The ray that was used to strike the object
-          camera: Camera                // The camera that was used in the raycaster
-          sourceEvent: DomEvent         // A reference to the host event
-          delta: number                 // Distance between mouse down and mouse up event in pixels
-        }) => ...*/}
-
-        <mesh visible={false}
-
-        >
-          <sphereGeometry args={[1, 25, 25]} />
-          <meshStandardMaterial />
-        </mesh>
-
-        <mesh >
-          <sphereGeometry args={[2,]} />
-          <meshStandardMaterial map={galaxyMap} />
-        </mesh>
-
-
-
-        {/* this element is a prespective camera that has default props*/}
-        <PerspectiveCamera makeDefault position={[5, 5, -5]} fov={75} />
-        {/* the next element is a camera controller, is lets up rotate the camera with mouse movements */}
-        <CameraController />
-        {/* the next element is a stats element, is lets up see the fps */}
-        {/*<Stats />*/}
-
-      </Canvas >
-    </>
-  )
+    <group position={position}>
+      <mesh
+        onPointerEnter={(e) => setColor("red")}
+        onPointerLeave={(e) => setColor("blue")} position={[0, 1, 0]} castShadow>
+        <sphereGeometry args={[1, 20, 20]} />
+        <meshStandardMaterial color={color} emissive={"black"} />
+      </mesh>
+    </group>
+  );
 }
 
-
-
-/* this components is the camera controller that uses orbit controls to manipulate the camera */
-const CameraController = () => {
-  const { camera, gl } = useThree();
-  useEffect(
-    () => {
-      const controls = new OrbitControls(camera, gl.domElement);
-      controls.minDistance = 3;
-      controls.maxDistance = 20;
-      return () => {
-        controls.dispose();
-      };
-    },
-    [camera, gl]
-  );
-  return null;
-};
-
-
-const DirectionalLight = (props) => {
-  const { camera } = useThree();
-  const directionalLight = useRef();
-  //in each frame, the light is moved to the camera position, useFrame
-  useFrame(() => {
-    directionalLight.current.position.set(camera.position.x, camera.position.y, camera.position.z);
-    //log camera position and rotation
-    console.table(camera.position);
-    console.tabla(directionalLight.position)
-  });
+export default function App() {
+  //create array of 100 objects {x,y,z}  with random values between 0 and 10
+  const objects = Array.from({ length: 1500 }, () => ({
+    x: MathUtils.randFloatSpread(100),
+    y: MathUtils.randFloatSpread(100),
+    z: MathUtils.randFloatSpread(100),
+  }));
   return (
-    <>
-      <directionalLight {...props} ref={directionalLight} />
-    </>
+    <Canvas
+      style={{ position: "fixed", top: "0", left: "0", zIndex: "-1" }}
+      shadows camera={{ fov: 45, near: 0.1, far: 1500, "position-y": 15 }}>
+      <OrbitControls
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI / 2 - MathUtils.degToRad(1)}
+      />
+      <Sky />
+      <ambientLight intensity={0.1} />
+
+      <directionalLight
+        position={[0, 1550, 2]}
+        castShadow
+        color={0x602376}
+        intensity={1.0}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={1500}
+        shadow-camera-left={-1500}
+        shadow-camera-right={1500}
+        shadow-camera-top={1500}
+        shadow-camera-bottom={-1500}
+      />
+      {objects.map((props, index) => (
+        <StadiumScene key={index} position={[props.x, props.y, props.z]} />
+      ))}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1500, 0]} castShadow receiveShadow>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial color={"white"} emissive={"blue"} />
+      </mesh>
+      <Stats />
+    </Canvas>
   );
 }
