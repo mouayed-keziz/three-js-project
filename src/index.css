@@ -11,3 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+/*
+  codespaces start script (package.json)
+    //"start": "BROWSER=none WDS_SOCKET_PORT=0 react-scripts start",
+*/
